@@ -1,0 +1,62 @@
+# ══════════════════════════════════════
+# 🍪 VMM Snack Reminder — 8 khung giờ/ngày
+# Giờ Việt Nam (UTC+7) → chuyển sang UTC cho cron
+# 06:00 VN = 23:00 UTC (ngày trước)
+# 09:00 VN = 02:00 UTC
+# 11:00 VN = 04:00 UTC
+# 13:30 VN = 06:30 UTC
+# 15:00 VN = 08:00 UTC
+# 17:00 VN = 10:00 UTC
+# 19:00 VN = 12:00 UTC
+# 21:00 VN = 14:00 UTC
+# ══════════════════════════════════════
+
+name: 🍪 Snack Reminder
+
+on:
+  schedule:
+    - cron: '0 23 * * *'   # 06:00 VN
+    - cron: '0 2 * * *'    # 09:00 VN
+    - cron: '0 4 * * *'    # 11:00 VN
+    - cron: '30 6 * * *'   # 13:30 VN
+    - cron: '0 8 * * *'    # 15:00 VN
+    - cron: '0 10 * * *'   # 17:00 VN
+    - cron: '0 12 * * *'   # 19:00 VN
+    - cron: '0 14 * * *'   # 21:00 VN
+  workflow_dispatch:        # Chạy tay để test
+
+jobs:
+  send-reminder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine time slot
+        id: slot
+        run: |
+          # Lấy giờ VN hiện tại
+          VN_HOUR=$(TZ='Asia/Ho_Chi_Minh' date +%H)
+          VN_MIN=$(TZ='Asia/Ho_Chi_Minh' date +%M)
+          VN_TIME="${VN_HOUR}:${VN_MIN}"
+          echo "VN time: $VN_TIME"
+          
+          # Map giờ → slot (0-7)
+          if [ "$VN_HOUR" -le 7 ]; then SLOT=0
+          elif [ "$VN_HOUR" -le 9 ]; then SLOT=1
+          elif [ "$VN_HOUR" -le 11 ]; then SLOT=2
+          elif [ "$VN_HOUR" -le 14 ]; then SLOT=3
+          elif [ "$VN_HOUR" -le 15 ]; then SLOT=4
+          elif [ "$VN_HOUR" -le 17 ]; then SLOT=5
+          elif [ "$VN_HOUR" -le 19 ]; then SLOT=6
+          else SLOT=7
+          fi
+          
+          echo "slot=$SLOT" >> $GITHUB_OUTPUT
+          echo "Slot: $SLOT"
+
+      - name: Send Telegram message
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          SLOT: ${{ steps.slot.outputs.slot }}
+        run: node snack-reminder.js
