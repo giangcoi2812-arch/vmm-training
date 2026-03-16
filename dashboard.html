@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>🏔️ VMM 21km Training</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a1628">
+
+<!-- iOS PWA (iPhone) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VMM 21km">
+<link rel="apple-touch-icon" href="icon-512.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a1628;--bg2:#0f1f35;--card:rgba(255,255,255,.06);
+  --card-hover:rgba(255,255,255,.1);--border:rgba(255,255,255,.08);
+  --text:#f0f0f0;--text2:#a0b4c8;--text3:#5a7088;
+  --run:#2dd4bf;--str:#a78bfa;--pick:#f59e0b;--rest:#64748b;--long:#4ade80;
+  --r:14px;--rs:10px;
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+a{color:var(--run);text-decoration:none}
+
+/* Hero */
+.hero{position:relative;height:140px;overflow:hidden}
+.hero img{width:100%;height:100%;object-fit:cover;filter:brightness(.6)}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,var(--bg) 100%)}
+.hero-text{position:absolute;bottom:14px;left:16px;right:16px}
+.hero-text h1{font-size:20px;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.hero-text p{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* Header */
+.header{background:var(--bg2);padding:10px 16px 10px;
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.logo{font-size:16px;font-weight:800;background:linear-gradient(135deg,var(--run),var(--pick));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.countdown{font-size:13px;color:var(--text2);font-weight:500}
+.countdown span{color:var(--pick);font-weight:700}
+.week-badge{display:inline-block;font-size:12px;font-weight:600;
+  padding:4px 12px;border-radius:20px;background:rgba(45,212,191,.15);color:var(--run)}
+.progress-mini{display:flex;gap:4px;align-items:center;margin-top:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0}
+.dot.done{background:var(--long)}.dot.current{background:var(--run);box-shadow:0 0 8px var(--run)}
+.dot-label{font-size:10px;color:var(--text3);margin-left:6px}
+
+/* Tabs */
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);
+  position:sticky;top:62px;z-index:99}
+.tab{flex:1;padding:12px 8px;text-align:center;font-size:13px;font-weight:600;
+  color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:.2s}
+.tab.active{color:var(--run);border-bottom-color:var(--run)}
+.tab:hover{color:var(--text2)}
+
+/* Content */
+.content{padding:16px;max-width:600px;margin:0 auto}
+.section{display:none}.section.active{display:block}
+
+/* Today */
+.today-date{font-size:22px;font-weight:800;margin-bottom:4px}
+.today-sub{font-size:13px;color:var(--text2);margin-bottom:16px}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px;margin-bottom:12px;transition:.2s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.card.t-run::before{background:var(--run)}.card.t-str::before{background:var(--str)}
+.card.t-pick::before{background:var(--pick)}.card.t-rest::before{background:var(--rest)}
+.card.t-long::before{background:var(--long)}
+.card.today-card{border-color:rgba(45,212,191,.3);box-shadow:0 0 20px rgba(45,212,191,.08)}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.card-title{font-size:15px;font-weight:700}
+.card-time{font-size:12px;color:var(--text2);font-weight:500}
+.card-dur{font-size:12px;color:var(--text3)}
+.card-items{list-style:none;margin-top:10px}
+.card-items li{display:flex;align-items:flex-start;gap:8px;padding:6px 0;
+  font-size:13px;color:var(--text2);border-top:1px solid var(--border)}
+.card-items li:first-child{border-top:none}
+.check{width:18px;height:18px;border:2px solid var(--border);border-radius:4px;
+  flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:.2s;margin-top:1px}
+.check.done{background:var(--long);border-color:var(--long)}
+.check.done::after{content:'✓';font-size:11px;color:#fff;font-weight:700}
+.item-text.done-text{text-decoration:line-through;color:var(--text3)}
+.card-note{font-size:12px;color:var(--pick);margin-top:8px;font-style:italic}
+
+/* Snack tips */
+.snack-card{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(45,212,191,.08));
+  border:1px solid rgba(245,158,11,.2);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.snack-title{font-size:14px;font-weight:700;margin-bottom:10px;color:var(--pick)}
+.snack-item{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:var(--text2)}
+.snack-check{width:20px;height:20px;border:2px solid rgba(245,158,11,.4);border-radius:50%;
+  flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;font-size:10px}
+.snack-check.done{background:var(--pick);border-color:var(--pick)}
+.snack-check.done::after{content:'✓';color:#fff;font-weight:700}
+.snack-when{font-size:11px;color:var(--text3);margin-left:auto;white-space:nowrap}
+
+/* Journal */
+.journal{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px;margin-bottom:12px}
+.journal-title{font-size:14px;font-weight:700;margin-bottom:8px}
+.journal-mood{display:flex;gap:6px;margin-bottom:8px}
+.mood-btn{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);
+  background:transparent;font-size:16px;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center}
+.mood-btn.sel{border-color:var(--run);background:rgba(45,212,191,.15);transform:scale(1.15)}
+.journal textarea{width:100%;min-height:50px;background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);padding:8px;font-family:inherit;font-size:13px;resize:vertical}
+.journal textarea::placeholder{color:var(--text3)}
+.journal-save{margin-top:6px;padding:6px 16px;border-radius:20px;border:none;
+  background:var(--run);color:#0a1628;font-weight:600;font-size:12px;cursor:pointer}
+
+/* Week summary */
+.week-summary{background:linear-gradient(135deg,rgba(45,212,191,.08),rgba(167,139,250,.08));
+  border:1px solid rgba(45,212,191,.2);border-radius:var(--r);padding:14px;margin-top:16px}
+.week-summary h3{font-size:14px;font-weight:700;margin-bottom:10px}
+.ws-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin:6px 0}
+.ws-fill{height:100%;background:linear-gradient(90deg,var(--run),var(--long));border-radius:4px;transition:.3s}
+.ws-stat{font-size:12px;color:var(--text2);margin-bottom:8px}
+.ws-logs{list-style:none;font-size:12px;color:var(--text2)}
+.ws-logs li{padding:4px 0;border-top:1px solid var(--border)}
+.ws-logs .ws-mood{margin-right:6px}
+.ws-note-box textarea{width:100%;min-height:40px;background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);padding:8px;font-family:inherit;font-size:12px;resize:vertical;margin-top:8px}
+
+/* Week View */
+.week-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px}
+.week-nav button{background:var(--card);border:1px solid var(--border);color:var(--text);
+  width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer;transition:.2s}
+.week-nav button:hover{background:var(--card-hover)}
+.week-nav button:disabled{opacity:.3;cursor:default}
+.week-title{font-size:16px;font-weight:700;text-align:center}
+.week-focus{font-size:12px;color:var(--text2);text-align:center;margin-bottom:16px}
+.day-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);
+  padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:.2s}
+.day-card:hover{background:var(--card-hover)}
+.day-card.is-today{border-color:rgba(45,212,191,.3);box-shadow:0 0 12px rgba(45,212,191,.06)}
+.day-head{display:flex;justify-content:space-between;align-items:center}
+.day-name{font-size:14px;font-weight:700;min-width:32px}
+.day-title{font-size:13px;color:var(--text2);flex:1;margin-left:10px}
+.day-chevron{color:var(--text3);font-size:14px;transition:.2s}
+.day-card.open .day-chevron{transform:rotate(90deg)}
+.day-detail{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.day-card.open .day-detail{max-height:500px}
+.day-detail-inner{padding-top:10px;border-top:1px solid var(--border);margin-top:10px}
+.day-detail-inner li{font-size:13px;color:var(--text2);padding:4px 0}
+
+/* Exercises */
+.ex-group-title{font-size:15px;font-weight:700;margin:16px 0 8px;
+  display:flex;align-items:center;gap:8px}
+.ex-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);
+  margin-bottom:6px;overflow:hidden}
+.ex-head{padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;
+  align-items:center;transition:.2s}
+.ex-head:hover{background:var(--card-hover)}
+.ex-name{font-size:14px;font-weight:600}
+.ex-target{font-size:11px;color:var(--text3)}
+.ex-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.ex-card.open .ex-body{max-height:400px}
+.ex-body-inner{padding:0 14px 14px;font-size:13px;color:var(--text2);line-height:1.6}
+.ex-body-inner ol{padding-left:18px;margin:6px 0}
+.ex-video{display:inline-block;margin-top:8px;padding:6px 14px;border-radius:20px;
+  background:rgba(255,0,0,.15);color:#f87171;font-size:12px;font-weight:600}
+
+/* Footer */
+.footer{text-align:center;padding:24px 16px 40px;padding-bottom:calc(40px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--border);margin-top:20px}
+.quote{font-size:13px;color:var(--text3);font-style:italic;line-height:1.5}
+
+/* PWA standalone — trạng thái khi mở như app */
+@media(display-mode:standalone){
+  .hero{margin-top:env(safe-area-inset-top)}
+}
+
+/* iOS splash / install banner */
+.pwa-banner{display:none;background:linear-gradient(135deg,rgba(45,212,191,.15),rgba(245,158,11,.15));
+  border:1px solid rgba(45,212,191,.3);border-radius:var(--r);padding:14px 16px;
+  margin:12px 16px;font-size:13px;color:var(--text2);align-items:center;gap:10px}
+.pwa-banner .pwa-icon{font-size:24px}
+.pwa-banner .pwa-close{margin-left:auto;background:none;border:none;color:var(--text3);
+  font-size:18px;cursor:pointer;padding:0 4px}
+.pwa-banner b{color:var(--text)}
+
+/* Warning */
+.warn{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);
+  border-radius:var(--rs);padding:12px;margin-bottom:16px;font-size:12px;color:var(--pick)}
+.warn b{color:var(--text)}
+
+@media(min-width:768px){
+  .content{padding:24px}.card{padding:20px}.today-date{font-size:28px}
+  .tabs{top:72px}.header{padding:12px 24px 12px}.hero{height:180px}
+}
+</style>
+</head>
+<body>
+<div class="hero"><img src="sapa_hero.png" alt="Sapa Mountains"><div class="hero-overlay"></div>
+<div class="hero-text"><h1>🏔️ VMM 21km — Sapa 2026</h1><p>Hành trình chinh phục đỉnh cao bắt đầu từ bước chân hôm nay</p></div></div>
+<div class="header">
+  <div class="header-top">
+    <div class="logo">🏔️ VMM 21km Sapa</div>
+    <div class="countdown">Còn <span id="daysLeft">?</span> ngày</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span class="week-badge" id="weekBadge">Tuần ?</span>
+    <span style="font-size:12px;color:var(--text3)" id="weekRange"></span>
+  </div>
+  <div class="progress-mini" id="progressDots"></div>
+</div>
+<div class="tabs">
+  <div class="tab active" onclick="showTab(0)">📋 Hôm nay</div>
+  <div class="tab" onclick="showTab(1)">📅 Lịch tuần</div>
+  <div class="tab" onclick="showTab(2)">💪 Bài tập</div>
+</div>
+<div class="content">
+  <div class="section active" id="sec0"></div>
+  <div class="section" id="sec1"></div>
+  <div class="section" id="sec2"></div>
+</div>
+<div class="footer"><p class="quote">"Không phải buổi chạy hôm nay quyết định thành tích.<br>Mà là tổng số km bạn tích lũy trong 3–6 tháng qua." — HLV Giang</p></div>
+<script>
+// ══════════════════════════════════════
+// 📊 CẤU HÌNH — Cập nhật khi đổi kế hoạch
+// ══════════════════════════════════════
+const CFG={start:'2026-03-17',race:'2026-09-19',raceName:'Vietnam Mountain Marathon 21km'};
+const DAYS=['CN','T2','T3','T4','T5','T6','T7'];
+const DAYF=['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+
+// ══════════════════════════════════════
+// 📅 DỮ LIỆU 8 TUẦN
+// type: run|str|pick|rest|long
+// ══════════════════════════════════════
+const W=[
+{w:1,t:'Làm quen lại — Run-Walk',f:'Cổ chân thích nghi, thở bụng',km:'~5km Run-Walk',
+ badge:'🚶‍♂️🏃',d:{
+ 1:[{y:'str',t:'Bổ trợ thân dưới',d:'30\'',n:'Nhẹ vì CN pick nặng',
+   i:['Squat: 15 rep × 3 set','Lunge: 10/chân × 2 set','Calf Raise chậm: 15 × 3','Single-leg Balance: 30s/chân']}],
+ 2:[{y:'run',t:'Run-Walk 20\' + Bổ trợ thân trên',d:'35\'',tm:'Sáng',
+   i:['Chạy 1\' → Đi bộ 3\' × 5 vòng','—— Sau chạy ——','Push-up: 10 × 2','Plank: 30s × 3','Superman: 10 × 2']},
+  {y:'pick',t:'Pickleball',d:'2h',tm:'18:00–20:00',i:['Giãn cơ bắp chân + cổ chân trước & sau']}],
+ 3:[{y:'rest',t:'Nghỉ / Giãn cơ',d:'15\'',i:['Ankle Circles','Calf Stretch','Foam Roll bắp chân']}],
+ 4:[{y:'run',t:'Run-Walk 25\' + Bổ trợ thân trên',d:'40\'',
+   i:['Chạy 1.5\' → Đi bộ 2.5\' × 6 vòng','—— Sau chạy ——','Push-up: 10 × 3','Plank: 40s × 3']}],
+ 5:[{y:'str',t:'Bổ trợ thân dưới',d:'30\'',
+   i:['Squat: 15 × 3','Walking Lunge: 8/chân × 3','Step-up: 10/chân × 2','Calf Raise: 15 × 3']}],
+ 6:[{y:'pick',t:'Pickleball',d:'~2.5h',tm:'Sáng',i:['Tập máy + đơn. Giãn cơ kỹ']},
+  {y:'long',t:'Đi bộ nhanh 30\' hoặc Run-Walk 20\'',d:'20–30\'',tm:'Chiều',
+   i:['Tùy cổ chân sau pick','Nếu mỏi → chỉ đi bộ']}],
+ 0:[{y:'pick',t:'Pick sáng + Pick tối',d:'~4h',i:['Giãn cơ kỹ giữa 2 trận','Routine giãn cơ tối']}]
+}},
+{w:2,t:'Run-Walk nâng cấp → Chạy liên tục',f:'Tăng tỷ lệ chạy, thử 2–3km liên tục',km:'~8km',
+ badge:'🎓',d:{
+ 1:[{y:'str',t:'Bổ trợ thân dưới',d:'30\'',
+   i:['Squat: 15 × 3','Lunge: 12/chân × 2','Calf Raise: 20 × 3','Clamshell: 15/bên × 2']}],
+ 2:[{y:'run',t:'Run-Walk 25\' + Bổ trợ thân trên',d:'40\'',tm:'Sáng',
+   i:['Chạy 2\' → Đi bộ 2\' × 6 vòng, thở 2-2','—— Sau chạy ——','Push-up: 12 × 3','Plank: 40s × 3','Superman: 12 × 2']},
+  {y:'pick',t:'Pickleball',d:'2h',tm:'18:00–20:00',i:[]}],
+ 3:[{y:'rest',t:'Nghỉ / Giãn cơ',d:'15\'',i:['Giãn cơ cổ chân + foam roll']}],
+ 4:[{y:'run',t:'Run-Walk 30\' + Bổ trợ thân trên',d:'50\'',
+   i:['Chạy 3\' → Đi bộ 2\' × 6 vòng','—— Sau chạy ——','Push-up: 12 × 3','Dips (ghế): 10 × 2','Plank: 45s × 3']}],
+ 5:[{y:'str',t:'Bổ trợ thân dưới',d:'30\'',
+   i:['Squat: 20 × 3','Walking Lunge: 10/chân × 3','Step-up: 10/chân × 3','Calf Raise: 20 × 3']}],
+ 6:[{y:'pick',t:'Pickleball',d:'~2.5h',tm:'Sáng',i:['Tập máy + đơn']},
+  {y:'long',t:'Test: Chạy liên tục 2–3km',d:'20–30\'',tm:'Chiều',n:'Pace 10:00+. Cổ chân OK → 🎉',i:['Pace thoải mái ≥10:00/km','Ghi lại cảm giác cổ chân']}],
+ 0:[{y:'pick',t:'Pick sáng + Pick tối',d:'~4h',i:['Tiết chế cường độ, chơi vui']}]
+}},
+{w:3,t:'Chạy liên tục 3–4km',f:'Ổn định chạy liên tục, nhịp thở 3-2',km:'~12km',
+ badge:'',d:{
+ 1:[{y:'str',t:'Bổ trợ thân dưới',d:'30\'',i:['Squat: 20 × 3','Lunge: 12/chân × 3','Step-up: 12/chân × 2','Calf Raise 1 chân: 10/chân × 2']}],
+ 2:[{y:'run',t:'Easy Run 3–3.5km + Bổ trợ thân trên',d:'40\'',tm:'Sáng',i:['Chạy liên tục 3–3.5km','—— Sau chạy ——','Push-up: 15 × 3','Superman: 12 × 3','Plank: 45s × 3']},
+  {y:'pick',t:'Pickleball',d:'2h',tm:'18:00–20:00',i:[]}],
+ 3:[{y:'rest',t:'Nghỉ / Giãn cơ',d:'15\'',i:['Giãn cơ + Foam roll']}],
+ 4:[{y:'run',t:'Easy Run 3.5–4km + Bổ trợ thân trên',d:'45\'',i:['Tập nhịp thở 3-2','—— Sau chạy ——','Push-up rộng tay: 12 × 3','Dips: 12 × 2','Plank: 50s × 3']}],
+ 5:[{y:'str',t:'Bổ trợ thân dưới',d:'30\'',i:['Full routine + Glute Bridge: 15 × 3']}],
+ 6:[{y:'pick',t:'Pickleball',d:'~2.5h',tm:'Sáng',i:[]},
+  {y:'long',t:'Long Run 4–4.5km',d:'45\'',tm:'Chiều',n:'Mốc mới!',i:['Pace easy, nói được chuyện']}],
+ 0:[{y:'pick',t:'Pick sáng + Pick tối',d:'~4h',i:[]}]
+}},
+{w:4,t:'DELOAD — Hồi phục chủ động',f:'Cho cơ thể siêu bù. Giảm 30% khối lượng',km:'~8km',
+ badge:'⬇️',d:{
+ 1:[{y:'str',t:'Bổ trợ thân dưới NHẸ',d:'20\'',i:['Squat: 12 × 2','Giãn cơ + foam roll 15\'']}],
+ 2:[{y:'run',t:'Easy Run nhẹ 2.5–3km',d:'30\'',tm:'Sáng',i:['Recovery pace, chill']},
+  {y:'pick',t:'Pickleball',d:'2h',tm:'18:00–20:00',i:['Chơi vui']}],
+ 3:[{y:'rest',t:'Nghỉ hoàn toàn',d:'—',i:['Ngủ đủ, ăn tốt']}],
+ 4:[{y:'run',t:'Easy Run 3km + Bổ trợ NHẸ',d:'35\'',i:['3km chill','Push-up: 10 × 2','Plank: 30s × 3']}],
+ 5:[{y:'rest',t:'Nghỉ / Mobility',d:'15\'',i:['Giãn cơ toàn thân']}],
+ 6:[{y:'pick',t:'Pickleball',d:'~2h',tm:'Sáng',n:'Nhẹ hơn bình thường',i:[]},
+  {y:'run',t:'Đi bộ nhanh 30\' hoặc chạy nhẹ 3km',d:'30\'',tm:'Chiều',i:[]}],
+ 0:[{y:'pick',t:'Pick sáng + Pick tối',d:'~4h',n:'Nhẹ nhàng',i:[]}]
+}},
+{w:5,t:'Đột phá 5km 🎯',f:'Chạy liên tục 5km!',km:'~14km',
+ badge:'🎯',d:{
+ 1:[{y:'str',t:'Bổ trợ thân dưới',d:'30\'',i:['Squat: 20 × 3','Walking Lunge: 12/chân × 3','Step-up: 12/chân × 3','Calf Raise 1 chân: 12/chân × 3']}],
+ 2:[{y:'run',t:'Easy Run 3.5km + Bổ trợ thân trên',d:'40\'',tm:'Sáng',i:['Easy pace','—— Sau chạy ——','Push-up: 15 × 3','Superman: 15 × 3','Plank: 50s × 3']},
+  {y:'pick',t:'Pickleball',d:'2h',tm:'18:00–20:00',i:[]}],
+ 3:[{y:'rest',t:'Nghỉ / Giãn cơ',d:'15\'',i:[]}],
+ 4:[{y:'run',t:'Easy Run 4km + Bổ trợ thân trên',d:'50\'',i:['Cadence cao sải ngắn','—— Sau chạy ——','Push-up rộng: 15 × 3','Dips: 12 × 3','Up-Down Plank: 10 × 3']}],
+ 5:[{y:'str',t:'Bổ trợ thân dưới',d:'30\'',i:['Full routine + Glute Bridge: 20 × 3']}],
+ 6:[{y:'pick',t:'Pickleball',d:'~2.5h',tm:'Sáng',i:[]},
+  {y:'long',t:'Long Run 5km',d:'50\'',tm:'Chiều',n:'🎯 ĐỘT PHÁ!',i:['Easy pace, nói được chuyện']}],
+ 0:[{y:'pick',t:'Pick sáng + Pick tối',d:'~4h',i:['🎉']}]
+}},
+{w:6,t:'Ổn định 5–6km + 3 buổi chạy',f:'Tăng lên 3 buổi chạy/tuần',km:'~16km',
+ badge:'',d:{
+ 1:[{y:'str',t:'Bổ trợ thân dưới + Đi bộ nhanh 20\'',d:'50\'',i:['Full routine thân dưới','Đi bộ nhanh 20 phút']}],
+ 2:[{y:'run',t:'Easy Run 4km + Bổ trợ thân trên',d:'45\'',tm:'Sáng',i:['Easy 4km','—— Bổ trợ thân trên ——']},
+  {y:'pick',t:'Pickleball',d:'2h',tm:'18:00–20:00',i:[]}],
+ 3:[{y:'run',t:'Easy Run 3.5km + Bổ trợ thân trên',d:'40\'',n:'Buổi chạy thứ 2 trong tuần',i:['Easy 3.5km']}],
+ 4:[{y:'str',t:'Bổ trợ thân dưới',d:'30\'',i:['Full routine']}],
+ 5:[{y:'rest',t:'Nghỉ (Pre-Long Run)',d:'—',i:['Nghỉ ngơi chuẩn bị long run']}],
+ 6:[{y:'pick',t:'Pickleball',d:'~2.5h',tm:'Sáng',i:[]},
+  {y:'long',t:'Long Run 5.5–6km',d:'55\'',tm:'Chiều',i:['Easy pace ổn định']}],
+ 0:[{y:'pick',t:'Pick sáng + Pick tối',d:'~4h',i:[]}]
+}},
+{w:7,t:'Tiến tới 7km',f:'Long run 7km cuối tuần',km:'~18km',
+ badge:'',d:{
+ 1:[{y:'str',t:'Bổ trợ thân dưới',d:'30\'',i:['Full routine tuần 5–8']}],
+ 2:[{y:'run',t:'Easy Run 4–4.5km + Bổ trợ thân trên',d:'45\'',tm:'Sáng',i:['Easy 4–4.5km']},
+  {y:'pick',t:'Pickleball',d:'2h',tm:'18:00–20:00',i:[]}],
+ 3:[{y:'run',t:'Easy Run 4km + Bổ trợ thân trên',d:'40\'',i:['Easy 4km']}],
+ 4:[{y:'str',t:'Bổ trợ thân dưới',d:'30\'',i:['Full routine']}],
+ 5:[{y:'rest',t:'Nghỉ (Pre-Long Run)',d:'—',i:[]}],
+ 6:[{y:'pick',t:'Pickleball',d:'~2.5h',tm:'Sáng',i:[]},
+  {y:'long',t:'Long Run 6.5–7km',d:'65\'',tm:'Chiều',i:['Easy pace, bền vững']}],
+ 0:[{y:'pick',t:'Pick sáng + Pick tối',d:'~4h',i:[]}]
+}},
+{w:8,t:'Chinh phục 8km — Hoàn thành GĐ 1!',f:'Long run 8km = mốc cuối!',km:'~21km',
+ badge:'🏆',d:{
+ 1:[{y:'str',t:'Bổ trợ thân dưới',d:'30\'',i:['Full routine tuần 5–8']}],
+ 2:[{y:'run',t:'Easy Run 4.5–5km + Bổ trợ thân trên',d:'50\'',tm:'Sáng',i:['Easy 4.5–5km']},
+  {y:'pick',t:'Pickleball',d:'2h',tm:'18:00–20:00',i:[]}],
+ 3:[{y:'run',t:'Easy Run 4km + Bổ trợ thân trên',d:'40\'',n:'6 bước quy trình',i:['Easy 4km']}],
+ 4:[{y:'str',t:'Bổ trợ thân dưới',d:'30\'',i:['Full routine']}],
+ 5:[{y:'rest',t:'Nghỉ (Pre-Long Run)',d:'—',i:[]}],
+ 6:[{y:'pick',t:'Pickleball',d:'~2.5h',tm:'Sáng',i:[]},
+  {y:'long',t:'Long Run 8km',d:'80\'',tm:'Chiều',n:'🏆 HOÀN THÀNH GIAI ĐOẠN 1!',i:['Easy pace, enjoy!']}],
+ 0:[{y:'pick',t:'Pick sáng + Pick tối',d:'~4h',i:['🎉 Ăn mừng!']}]
+}}
+];
+
+// ══════════════════════════════════════
+// 💪 THƯ VIỆN BÀI TẬP
+// ══════════════════════════════════════
+const EX=[
+{g:'🦵 Thân Dưới',items:[
+ {n:'Squat (Ngồi xổm)',tg:'Đùi trước, mông',
+  s:'Đứng rộng vai → đẩy mông ra sau → hạ xuống đùi song song sàn → đẩy gót đứng lên. Gối KHÔNG vượt mũi chân.',
+  v:'https://www.youtube.com/watch?v=aclHkVaku9U'},
+ {n:'Lunge (Bước chùng)',tg:'Đùi, mông, thăng bằng',
+  s:'Bước 1 chân ra trước → hạ gối sau gần sàn (2 gối 90°) → đẩy đứng lên → đổi chân.',
+  v:'https://www.youtube.com/watch?v=wrwwXE_5-2M'},
+ {n:'Step-up (Bước lên bậc)',tg:'Đùi trước, mông — giống leo dốc',
+  s:'Đặt 1 chân lên bậc thang/ghế → ấn gót, đứng thẳng lên → hạ xuống từ từ. KHÔNG lấy đà chân dưới.',
+  v:'https://www.youtube.com/watch?v=dQqApCGd5Ag'},
+ {n:'Calf Raise (Kiễng gót)',tg:'⭐ Bắp chân — bảo vệ ống đồng',
+  s:'Đứng bám ghế → kiễng gót LÊN 3s → hạ XUỐNG 3s. Phần hạ mới quan trọng! Nâng cấp: 1 chân.',
+  v:'https://www.youtube.com/watch?v=ODS0qNdatRU'},
+ {n:'Glute Bridge (Nâng hông)',tg:'Mông, hamstring',
+  s:'Nằm ngửa, gập gối → siết mông, nâng hông lên thẳng từ gối→vai → giữ 2s → hạ.',
+  v:'https://www.youtube.com/watch?v=vbYSMdmjxAM'},
+ {n:'Clamshell (Mở vỏ sò)',tg:'Mông giữa — phòng đau gối',
+  s:'Nằm nghiêng, gối gập 90° → mở gối trên lên (hông KHÔNG xoay) → hạ từ từ.',
+  v:'https://www.youtube.com/watch?v=pSsVfMHiUKI'},
+ {n:'Single-leg Balance (Đứng 1 chân)',tg:'Cổ chân, thăng bằng trail',
+  s:'Đứng 1 chân 30s → đổi chân. Nâng cấp: nhắm mắt. Tập lúc đánh răng!',
+  v:'https://www.youtube.com/watch?v=u81neyTsHSk'}
+]},
+{g:'💪 Thân Trên',items:[
+ {n:'Push-up (Chống đẩy)',tg:'Ngực, vai, tay sau',
+  s:'Chống tay rộng hơn vai → hạ ngực gần sàn → đẩy lên. Thân thẳng! Chưa được → chống gối.',
+  v:'https://www.youtube.com/watch?v=IODxDxX7oi4'},
+ {n:'Plank (Tấm ván)',tg:'Core — giữ thân ổn định khi chạy',
+  s:'Chống cẳng tay + nhón chân → thân thẳng → siết bụng, siết mông → GIỮ. Không võng lưng!',
+  v:'https://www.youtube.com/watch?v=pvIjsG5Svck'},
+ {n:'Superman (Siêu nhân)',tg:'Lưng dưới — giữ tư thế chạy thẳng',
+  s:'Nằm sấp, 2 tay duỗi trước → nâng tay + chân + ngực lên → giữ 2–3s → hạ.',
+  v:'https://www.youtube.com/watch?v=z6PJMT2y8GQ'},
+ {n:'Dips trên ghế',tg:'Tay sau, vai',
+  s:'Tay bám mép ghế → đẩy mông ra → hạ bằng gập khuỷu tay (hướng ra sau) → đẩy lên. Ghế phải chắc!',
+  v:'https://www.youtube.com/watch?v=HCf97NPYeGY'},
+ {n:'Up-Down Plank',tg:'Core + vai nâng cao',
+  s:'Từ plank cẳng tay → đẩy 1 tay lên thẳng → tay kia → về plank. Đổi tay bắt đầu.',
+  v:'https://www.youtube.com/watch?v=L4oFJRDAU4Q'}
+]},
+{g:'🧊 Giãn Cơ Hồi Phục',items:[
+ {n:'Standing Calf Stretch',tg:'Giãn bắp chân (2 bản)',
+  s:'Chống tường, chân sau gót chạm sàn. Bản 1: gối THẲNG (cơ trên). Bản 2: gối HƠI GẬP (cơ dưới). Giữ 30s.',
+  v:'https://www.youtube.com/watch?v=P6UZ8jJYHqs'},
+ {n:'Ankle Alphabet (Vẽ chữ cái)',tg:'Linh hoạt cổ chân',
+  s:'Ngồi ghế, nhấc chân → dùng mũi chân vẽ A→Z trong không khí. Mỗi chân 1 lượt.',v:''},
+ {n:'Foam Roll bắp chân',tg:'Massage giải phóng cơ',
+  s:'Đặt bắp chân lên con lăn → lăn chậm từ gót lên gối → gặp điểm đau: DỪNG giữ 10–20s.',
+  v:'https://www.youtube.com/watch?v=i2eVJFE-eoA'}
+]}
+];
+
+// ══════════════════════════════════════
+// 🍪 MẸO TẬP LÉN — gắn theo keyword
+// ══════════════════════════════════════
+const SNACKS=[
+ {k:['Calf Raise','calf','kiễng'],tip:'Đợi nước nóng → kiễng gót 15 cái',when:'🚿 Sáng'},
+ {k:['Calf Raise','calf','kiễng'],tip:'Rửa bát → kiễng gót 1 chân, đổi chân',when:'🍳 Tối'},
+ {k:['Balance','1 chân','thăng bằng'],tip:'Đánh răng sáng → đứng chân trái 2 phút',when:'☀️ Sáng'},
+ {k:['Balance','1 chân','thăng bằng'],tip:'Đánh răng tối → đứng chân phải 2 phút',when:'🌙 Tối'},
+ {k:['Squat','squat','ngồi'],tip:'Ngồi xuống ghế → squat chậm 3 giây',when:'🪑 Cả ngày'},
+ {k:['Plank','plank'],tip:'Chờ file tải / họp online → plank 30 giây',when:'💻 Cả ngày'},
+ {k:['Glute Bridge','nâng hông','glute'],tip:'Trước ngủ trên giường → nâng hông 15 cái',when:'🛏️ Tối'},
+ {k:['Lunge','lunge','bước'],tip:'Đi hành lang cơ quan → walking lunge 5 bước',when:'🏢 Cả ngày'},
+ {k:['Foam Roll','foam','lăn'],tip:'Xem TV tối → foam roll bắp chân 5 phút',when:'📺 Tối'},
+ {k:['Push-up','chống đẩy'],tip:'Quảng cáo TV → push-up 10 cái',when:'📺 Tối'},
+];
+function getSnacks(sessions){
+  const txt=sessions.map(s=>(s.t+' '+s.i.join(' ')).toLowerCase()).join(' ');
+  return SNACKS.filter(s=>s.k.some(k=>txt.includes(k.toLowerCase())));
+}
+
+// ══════════════════════════════════════
+// 🎨 RENDER
+// ══════════════════════════════════════
+const ICONS={run:'🟢',str:'💪',pick:'🏓',rest:'😴',long:'🔵'};
+const COLORS={run:'var(--run)',str:'var(--str)',pick:'var(--pick)',rest:'var(--rest)',long:'var(--long)'};
+const MOODS=['😫','😐','😊','🔥'];
+let viewWeek=1;
+let store=JSON.parse(localStorage.getItem('vmm-done')||'{}');
+let snackStore=JSON.parse(localStorage.getItem('vmm-snack')||'{}');
+let logStore=JSON.parse(localStorage.getItem('vmm-log')||'{}');
+
+function today(){return new Date()}
+function getWeek(){
+  const d=Math.floor((today()-new Date(CFG.start))/(864e5));
+  return d<0?0:Math.min(Math.floor(d/7)+1,9);
+}
+function getDow(){return today().getDay()}
+function fmtDate(d){
+  return d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+function init(){
+  const cw=getWeek();viewWeek=Math.max(1,Math.min(cw,8));
+  const dl=Math.ceil((new Date(CFG.race)-today())/864e5);
+  document.getElementById('daysLeft').textContent=dl;
+  if(cw<1)document.getElementById('weekBadge').textContent='Chuẩn bị';
+  else if(cw>8)document.getElementById('weekBadge').textContent='GĐ 1 ✅';
+  else document.getElementById('weekBadge').textContent='Tuần '+cw+' / 8';
+  let dots='';
+  for(let i=1;i<=8;i++){
+    const cls=i<cw?'done':i===cw?'current':'';
+    dots+=`<div class="dot ${cls}"></div>`;
+  }
+  dots+='<span class="dot-label">GĐ 1</span>';
+  document.getElementById('progressDots').innerHTML=dots;
+  renderToday();renderWeek();renderExercises();
+}
+
+function renderToday(){
+  const sec=document.getElementById('sec0');
+  const cw=getWeek(),dow=getDow();
+  let h=`<div class="today-date">${DAYF[dow]}, ${fmtDate(today())}</div>`;
+  if(cw<1){
+    h+=`<div class="today-sub">Tuần 1 bắt đầu ngày ${CFG.start.split('-').reverse().join('/')}!</div>`;
+    h+=`<div class="card t-rest"><div class="card-title">⏳ Chưa bắt đầu — Nghỉ ngơi chuẩn bị!</div></div>`;
+  }else if(cw>8){
+    h+=`<div class="today-sub">🏆 Hoàn thành Giai đoạn 1!</div>`;
+    h+=`<div class="card t-long"><div class="card-title">🎉 Chúc mừng! Sẵn sàng cho Giai đoạn 2.</div></div>`;
+  }else{
+    const wk=W[cw-1];
+    h+=`<div class="today-sub">${wk.badge||''} Tuần ${cw} — ${wk.t} | Tổng: ${wk.km}</div>`;
+    const sessions=wk.d[dow]||[];
+    if(!sessions.length) h+=`<div class="card t-rest"><div class="card-title">😴 Không có bài tập hôm nay</div></div>`;
+    sessions.forEach((s,si)=>{
+      h+=`<div class="card t-${s.y} today-card">`;
+      h+=`<div class="card-head"><div class="card-title">${ICONS[s.y]||''} ${s.t}</div>`;
+      if(s.tm)h+=`<div class="card-time">${s.tm}</div>`;
+      h+=`</div><div class="card-dur">${s.d}</div>`;
+      if(s.i&&s.i.length){
+        h+=`<ul class="card-items">`;
+        s.i.forEach((item,ii)=>{
+          const key=`${cw}-${dow}-${si}-${ii}`;
+          const done=store[key];
+          const isSep=item.startsWith('——');
+          if(isSep){h+=`<li style="border:none;color:var(--text3);font-size:11px;padding:2px 0">${item}</li>`;}
+          else{h+=`<li><div class="check${done?' done':''}" onclick="toggle('${key}',this)"></div><span class="item-text${done?' done-text':''}">${item}</span></li>`;}
+        });
+        h+=`</ul>`;
+      }
+      if(s.n)h+=`<div class="card-note">💡 ${s.n}</div>`;
+      h+=`</div>`;
+    });
+    // === SNACKING TIPS ===
+    const tips=getSnacks(sessions);
+    if(tips.length){
+      h+=`<div class="snack-card"><div class="snack-title">🍪 Mẹo Tập Lén hôm nay</div>`;
+      tips.forEach((t,i)=>{
+        const sk=`snk-${cw}-${dow}-${i}`;
+        const done=snackStore[sk];
+        h+=`<div class="snack-item"><div class="snack-check${done?' done':''}" onclick="togSnack('${sk}',this)"></div>`;
+        h+=`<span>${t.tip}</span><span class="snack-when">${t.when}</span></div>`;
+      });
+      h+=`</div>`;
+    }
+    // === JOURNAL ===
+    const lk=`log-${cw}-${dow}`;
+    const saved=logStore[lk]||{};
+    h+=`<div class="journal"><div class="journal-title">📝 Nhật ký hôm nay</div>`;
+    h+=`<div class="journal-mood">`;
+    MOODS.forEach((m,i)=>{
+      h+=`<button class="mood-btn${saved.mood===i?' sel':''}" onclick="setMood(${cw},${dow},${i},this)">${m}</button>`;
+    });
+    h+=`</div>`;
+    h+=`<textarea id="jNote" placeholder="Ghi chú: pace, cảm giác cơ, thời tiết...">${saved.note||''}</textarea>`;
+    h+=`<button class="journal-save" onclick="saveLog(${cw},${dow})">💾 Lưu ghi chú</button></div>`;
+  }
+  // Warning
+  h+=`<div class="warn" style="margin-top:16px">🚦 <b>Đèn cảnh báo ống đồng:</b><br>
+  🟢 Hơi tức warm-up, hết khi chạy → OK<br>
+  🟡 Đau nhẹ &lt;3/10 khi chạy → Giảm 30%<br>
+  🔴 Đau &gt;3/10, đau khi đi bộ → DỪNG, nghỉ 2–3 ngày</div>`;
+  sec.innerHTML=h;
+}
+
+function renderWeek(){
+  const sec=document.getElementById('sec1');
+  const cw=getWeek(),dow=getDow(),wk=W[Math.max(0,Math.min(viewWeek-1,7))];
+  let h=`<div class="week-nav">
+    <button onclick="chgWeek(-1)" ${viewWeek<=1?'disabled':''}>◀</button>
+    <div><div class="week-title">Tuần ${wk.w}: ${wk.t}</div>
+    <div class="week-focus">${wk.f} | ${wk.km}</div></div>
+    <button onclick="chgWeek(1)" ${viewWeek>=8?'disabled':''}>▶</button></div>`;
+  const order=[1,2,3,4,5,6,0];
+  order.forEach(di=>{
+    const sessions=wk.d[di]||[];
+    const isToday=viewWeek===cw&&di===dow;
+    const titles=sessions.map(s=>`${ICONS[s.y]||''} ${s.t}`).join(' + ');
+    // day log emoji
+    const dl=logStore[`log-${wk.w}-${di}`];
+    const moodIcon=dl&&dl.mood!=null?MOODS[dl.mood]:'';
+    h+=`<div class="day-card${isToday?' is-today':''}" onclick="this.classList.toggle('open')">`;
+    h+=`<div class="day-head"><div class="day-name" style="color:${COLORS[sessions[0]?.y]||'var(--text)'}">${DAYS[di]}</div>`;
+    h+=`<div class="day-title">${titles||'—'}</div>`;
+    h+=`<span style="font-size:14px">${moodIcon}</span>`;
+    h+=`<div class="day-chevron">›</div></div>`;
+    if(sessions.some(s=>s.i&&s.i.length)){
+      h+=`<div class="day-detail"><div class="day-detail-inner"><ul style="list-style:none">`;
+      sessions.forEach(s=>{
+        if(s.tm)h+=`<li style="font-weight:600;color:${COLORS[s.y]}">${s.tm}: ${s.t} (${s.d})</li>`;
+        s.i.forEach(item=>{h+=`<li>• ${item}</li>`;});
+        if(s.n)h+=`<li style="color:var(--pick);font-style:italic">💡 ${s.n}</li>`;
+      });
+      if(dl&&dl.note)h+=`<li style="color:var(--run);margin-top:4px">📝 ${dl.note}</li>`;
+      h+=`</ul></div></div>`;
+    }
+    h+=`</div>`;
+  });
+  // === WEEK SUMMARY ===
+  const allDays=[1,2,3,4,5,6,0];
+  let total=0,logged=0,logs=[];
+  allDays.forEach(di=>{
+    const ss=wk.d[di]||[];
+    if(ss.length&&ss[0].y!=='rest')total++;
+    const dl=logStore[`log-${wk.w}-${di}`];
+    if(dl&&(dl.mood!=null||dl.note)){logged++;logs.push({day:DAYS[di],mood:dl.mood!=null?MOODS[dl.mood]:'',note:dl.note||''});}
+  });
+  const pct=total?Math.round(logged/total*100):0;
+  h+=`<div class="week-summary"><h3>📊 Tổng hợp Tuần ${wk.w}</h3>`;
+  h+=`<div class="ws-stat">${logged}/${total} buổi đã ghi nhận (${pct}%)</div>`;
+  h+=`<div class="ws-bar"><div class="ws-fill" style="width:${pct}%"></div></div>`;
+  if(logs.length){
+    h+=`<ul class="ws-logs">`;
+    logs.forEach(l=>{h+=`<li><span class="ws-mood">${l.mood}</span><b>${l.day}:</b> ${l.note||'(không ghi chú)'}</li>`;});
+    h+=`</ul>`;
+  }
+  const wnk=`wknote-${wk.w}`;
+  const wnote=localStorage.getItem(wnk)||'';
+  h+=`<div class="ws-note-box"><textarea id="wnote" placeholder="Ghi chú tổng tuần: điều chỉnh gì cho tuần sau?">${wnote}</textarea>`;
+  h+=`<button class="journal-save" style="margin-top:4px" onclick="saveWeekNote(${wk.w})">💾 Lưu ghi chú tuần</button></div></div>`;
+  sec.innerHTML=h;
+}
+
+function renderExercises(){
+  const sec=document.getElementById('sec2');
+  let h='';
+  EX.forEach(g=>{
+    h+=`<div class="ex-group-title">${g.g}</div>`;
+    g.items.forEach(e=>{
+      h+=`<div class="ex-card" onclick="this.classList.toggle('open')">`;
+      h+=`<div class="ex-head"><div><div class="ex-name">${e.n}</div><div class="ex-target">${e.tg}</div></div>
+        <div class="day-chevron">›</div></div>`;
+      h+=`<div class="ex-body"><div class="ex-body-inner">`;
+      h+=`<p>${e.s}</p>`;
+      if(e.v)h+=`<a class="ex-video" href="${e.v}" target="_blank">▶ Xem video YouTube</a>`;
+      h+=`</div></div></div>`;
+    });
+  });
+  sec.innerHTML=h;
+}
+
+// ══════════════════════════════════════
+// 🔧 INTERACTIONS
+// ══════════════════════════════════════
+function showTab(n){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  document.querySelectorAll('.section').forEach((s,i)=>s.classList.toggle('active',i===n));
+  if(n===1)renderWeek();
+}
+function chgWeek(d){viewWeek=Math.max(1,Math.min(8,viewWeek+d));renderWeek();}
+function toggle(key,el){
+  store[key]=!store[key];
+  localStorage.setItem('vmm-done',JSON.stringify(store));
+  el.classList.toggle('done');
+  el.nextElementSibling.classList.toggle('done-text');
+}
+function togSnack(key,el){
+  snackStore[key]=!snackStore[key];
+  localStorage.setItem('vmm-snack',JSON.stringify(snackStore));
+  el.classList.toggle('done');
+}
+function setMood(w,d,m,el){
+  const lk=`log-${w}-${d}`;
+  if(!logStore[lk])logStore[lk]={};
+  logStore[lk].mood=m;
+  localStorage.setItem('vmm-log',JSON.stringify(logStore));
+  el.parentElement.querySelectorAll('.mood-btn').forEach((b,i)=>b.classList.toggle('sel',i===m));
+}
+function saveLog(w,d){
+  const lk=`log-${w}-${d}`;
+  if(!logStore[lk])logStore[lk]={};
+  logStore[lk].note=document.getElementById('jNote').value;
+  localStorage.setItem('vmm-log',JSON.stringify(logStore));
+  const btn=event.target;btn.textContent='✅ Đã lưu!';
+  setTimeout(()=>btn.textContent='💾 Lưu ghi chú',1500);
+}
+function saveWeekNote(w){
+  localStorage.setItem(`wknote-${w}`,document.getElementById('wnote').value);
+  const btn=event.target;btn.textContent='✅ Đã lưu!';
+  setTimeout(()=>btn.textContent='💾 Lưu ghi chú tuần',1500);
+}
+
+init();
+
+// ══════════════════════════════════════
+// 📱 PWA — Service Worker + iOS Install Banner
+// ══════════════════════════════════════
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(r=>{
+    console.log('[PWA] Service Worker registered ✅',r.scope);
+  }).catch(e=>console.log('[PWA] SW failed:',e));
+}
+
+// Hiện banner hướng dẫn cài trên iOS Safari
+(function(){
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isStandalone=window.navigator.standalone===true;
+  const dismissed=localStorage.getItem('vmm-pwa-dismiss');
+  if(isIOS && !isStandalone && !dismissed){
+    const b=document.createElement('div');
+    b.className='pwa-banner';b.style.display='flex';
+    b.innerHTML=`<span class="pwa-icon">📲</span>
+      <span><b>Cài app lên iPhone:</b> Nhấn <b>⬆️ Chia sẻ</b> → <b>Thêm vào Màn hình chính</b></span>
+      <button class="pwa-close" onclick="this.parentElement.remove();localStorage.setItem('vmm-pwa-dismiss','1')" aria-label="Đóng">✕</button>`;
+    document.querySelector('.content').prepend(b);
+  }
+})();
+</script>
+</body>
+</html>

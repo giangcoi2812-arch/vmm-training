@@ -1,0 +1,24 @@
+{
+  "name": "VMM 21km — Sapa Training",
+  "short_name": "VMM 21km",
+  "description": "Dashboard luyện tập cho Vietnam Mountain Marathon 21km Sapa 2026",
+  "start_url": "./dashboard.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0a1628",
+  "background_color": "#0a1628",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
